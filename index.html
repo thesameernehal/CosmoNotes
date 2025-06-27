@@ -6,47 +6,103 @@
     <title>CosmoNotes – Space Note-Taking App</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #0e0e2c;
-            color: #fff;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(to bottom, #0d1b2a, #1b263b);
+            color: #ffffff;
             margin: 0;
             padding: 20px;
         }
 
-        h1 {
-            color: #ffd700;
+        h1,
+        h2 {
             text-align: center;
+            color: #f9d923;
+            font-weight: bold;
         }
 
-        #noteForm {
-            margin-bottom: 20px;
+        #noteForm,
+        #apodSection {
             text-align: center;
+            margin-bottom: 30px;
+            background-color: #1e3a5f;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
 
         textarea {
-            width: 80%;
+            width: 90%;
             height: 100px;
             padding: 10px;
             font-size: 16px;
+            border-radius: 8px;
+            border: none;
+            resize: none;
+            margin-bottom: 10px;
         }
 
         button {
             padding: 10px 20px;
             font-size: 16px;
-            margin-top: 10px;
+            margin: 5px;
+            background-color: #00a8e8;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #007ea7;
         }
 
         .note {
-            background: #1e1e3f;
-            margin: 10px auto;
+            background: #16324f;
+            margin: 15px auto;
             padding: 15px;
-            border-left: 5px solid #ffd700;
-            width: 80%;
+            border-left: 5px solid #f9d923;
+            border-radius: 10px;
+            width: 85%;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .note p {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .note small {
+            font-size: 12px;
+            color: #ccc;
+        }
+
+        #apodImage {
+            max-width: 90%;
+            border: 4px solid #00a8e8;
+            border-radius: 12px;
+            margin: 10px 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        #apodDescription {
+            max-width: 85%;
+            margin: auto;
+            font-size: 14px;
+            color: #dddddd;
         }
     </style>
+
 </head>
 
 <body>
+    <div id="apodSection" style="margin-bottom: 30px; text-align: center;">
+        <h2 style="color: #00d4ff;">🌌 NASA's Astronomy Picture of the Day</h2>
+        <img id="apodImage" src="" alt="APOD" style="max-width: 80%; border: 4px solid #00d4ff; margin: 10px 0;"><br>
+        <strong id="apodTitle" style="color: #ffd700;"></strong><br>
+        <p id="apodDescription" style="max-width: 80%; margin: auto; color: #ccc;"></p>
+    </div>
+
     <h1>CosmoNotes</h1>
 
     <div id="noteForm">
@@ -79,9 +135,11 @@
                 // Adding a new note
                 const newNote = {
                     id: Date.now(),
-                    content: text
+                    content: text,
+                    timestamp: new Date().toLocaleString()
                 };
                 notes.push(newNote);
+
             }
 
             localStorage.setItem("cosmonotes", JSON.stringify(notes));
@@ -111,15 +169,32 @@
                 const div = document.createElement("div");
                 div.className = "note";
                 div.innerHTML = `
-                <p>${note.content}</p>
-                <button onclick="editNote(${note.id})">Edit</button>
-                <button onclick="deleteNote(${note.id})">Delete</button>
-            `;
+    <p>${note.content}</p>
+    <small style="color: gray;">${note.timestamp || ''}</small><br>
+    <button onclick="editNote(${note.id})">Edit</button>
+    <button onclick="deleteNote(${note.id})">Delete</button>
+`;
+
                 notesContainer.appendChild(div);
             });
         }
 
         window.onload = displayNotes;
+
+        // NASA APOD API Integration
+        const apiKey = "DEMO_KEY"; // Replace with your NASA key if you have one
+        fetch(`https://api.nasa.gov/planetary/apod?api_key=${apiKey}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("apodImage").src = data.url;
+                document.getElementById("apodTitle").innerText = data.title;
+                document.getElementById("apodDescription").innerText = data.explanation;
+            })
+            .catch(error => {
+                document.getElementById("apodSection").innerHTML += "<p style='color: red;'>Failed to load APOD.</p>";
+                console.error("NASA APOD error:", error);
+            });
+
     </script>
 
 </body>
