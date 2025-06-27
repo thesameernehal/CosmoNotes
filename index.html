@@ -51,33 +51,57 @@
 
     <div id="noteForm">
         <textarea id="noteInput" placeholder="Write your note here..."></textarea><br>
-        <button onclick="addNote()">Add Note</button>
+        <button onclick="addOrUpdateNote()">Add Note</button>
+
     </div>
 
     <div id="notesContainer"></div>
 
     <script>
         const notesContainer = document.getElementById("notesContainer");
+        const input = document.getElementById("noteInput");
+        let editId = null; // Tracks note being edited
 
-        function addNote() {
-            const input = document.getElementById("noteInput");
+        function addOrUpdateNote() {
             const text = input.value.trim();
             if (text === "") return;
 
-            const note = {
-                id: Date.now(),
-                content: text
-            };
+            let notes = JSON.parse(localStorage.getItem("cosmonotes") || "[]");
 
-            saveNote(note);
+            if (editId) {
+                // Editing an existing note
+                notes = notes.map(note =>
+                    note.id === editId ? { ...note, content: text } : note
+                );
+                editId = null;
+                document.querySelector("button").innerText = "Add Note";
+            } else {
+                // Adding a new note
+                const newNote = {
+                    id: Date.now(),
+                    content: text
+                };
+                notes.push(newNote);
+            }
+
+            localStorage.setItem("cosmonotes", JSON.stringify(notes));
             input.value = "";
             displayNotes();
         }
 
-        function saveNote(note) {
-            const notes = JSON.parse(localStorage.getItem("cosmonotes") || "[]");
-            notes.push(note);
+        function deleteNote(id) {
+            let notes = JSON.parse(localStorage.getItem("cosmonotes") || "[]");
+            notes = notes.filter(note => note.id !== id);
             localStorage.setItem("cosmonotes", JSON.stringify(notes));
+            displayNotes();
+        }
+
+        function editNote(id) {
+            const notes = JSON.parse(localStorage.getItem("cosmonotes") || "[]");
+            const note = notes.find(n => n.id === id);
+            input.value = note.content;
+            editId = id;
+            document.querySelector("button").innerText = "Update Note";
         }
 
         function displayNotes() {
@@ -86,14 +110,18 @@
             notes.forEach(note => {
                 const div = document.createElement("div");
                 div.className = "note";
-                div.textContent = note.content;
+                div.innerHTML = `
+                <p>${note.content}</p>
+                <button onclick="editNote(${note.id})">Edit</button>
+                <button onclick="deleteNote(${note.id})">Delete</button>
+            `;
                 notesContainer.appendChild(div);
             });
         }
 
-        // Display existing notes on load
         window.onload = displayNotes;
     </script>
+
 </body>
 
 </html>
